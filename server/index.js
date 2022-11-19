@@ -6,7 +6,7 @@ const server = new WebSocket.Server({
 
 // List of all connected user
 const clients = new Map();
-// let next = null;
+let next = null;
 
 // On connection to server event
 server.on('connection', (connection) => {
@@ -17,54 +17,60 @@ server.on('connection', (connection) => {
     connection.send(JSON.stringify({
         type: 'CONNECTION_SETUP',
         from: id,
-    }))
-
+    }));
 
     // On message from user event (user => server)
     connection.on('message', (message) => {
         const data = JSON.parse(message);
-        data.from = id;
 
         switch(data.type) {
             // Request from user to create a chat
             case 'USER_REQUEST':
+                if(next == null) {
+                    // If there is no next user, set up the queue with ID
+                    next = id;
+                    console.log('added to queue')
+                } else {
+                    // Send USER_FOUND message to current user
+                    connection.send(JSON.stringify({
+                        type: 'USER_RESPONSE',
+                        to: next
+                    }));
+
+                    // Send USER_FOUND message to first user in queue
+                    clients.get(next).send(JSON.stringify({
+                        type: 'USER_RESPONSE',
+                        to: id,
+                    }))
+
+                    // Clear the queue
+                    next = null;
+                }
                 break;
 
             // Send message to another user
             case 'MESSAGE':
-                break;
-        }
-        
-        /*if(message.type === "MESSAGE") {
-            // Sending message to receiver
-            if(message.to != null) {
-                clients.get(message.to).send(JSON.stringify({
+                clients.get(data.to).send(JSON.stringify({
                     type: 'MESSAGE',
                     from: id,
-                    to: message.to,
-                    content: message.content
+                    to: data.to,
+                    content: data.content,
                 }))
-            }
-        } else if(message.type === 'REQUEST') {
-            if(next != null) {
-                clients.get(id).send(JSON.stringify({
-                    type: 'USER_FOUND',
-                    to: next, 
-                }))
-                clients.get(next).send(JSON.stringify({
-                    type: 'USER_FOUND',
-                    to: id
-                }))
-            } else {
-                next = id;
-            }
-        }*/
+                break;
+        }
 
     });
 
+    // Connection close handler
     connection.on('close', () => {
+        // Remove user connection from users map
         clients.delete(connection);
-        //if(next == id) next = null;
+
+        // Check if user was in queue
+        if(next == id) {
+            next = null;
+            console.log('cleared queue')
+        }
     })
 })
 
