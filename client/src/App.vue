@@ -35,7 +35,7 @@
 			</main>
 
 			<!-- Footer -->
-			<footer class="rounded-t-3xl bg-stone-100 p-4 flex gap-4 md:p-2">
+			<footer class="rounded-t-3xl bg-stone-100 p-4 flex gap-4 md:p-2 shadow-lg">
 				<input type="text" id="message" class="bg-stone-200 rounded-3xl p-1 px-3 text-lg text-stone-700 w-full md:text-base" placeholder="Type message...">
 				<button class="bg-emerald-500 rounded-full p-2 flex justify-center items-center" @click="sendMessage()">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#f5f5f4" class="w-7 h-7 md:w-6 md:h-6">

@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 .message-sender {
-    @apply bg-emerald-500 text-stone-100 p-2 self-end rounded-xl break-all ml-20;
+    @apply bg-emerald-500 text-stone-100 py-2 px-4 self-end rounded-xl break-all ml-20;
 }
 
 .message-receiver {
-    @apply bg-stone-100 text-stone-700 p-2 self-start rounded-xl break-all mr-20;
+    @apply bg-stone-100 text-stone-700 py-2 px-4 self-start rounded-xl break-all mr-20;
 }
