@@ -22,8 +22,9 @@
 		<div v-if="status === 'chat'" class="w-full h-full flex flex-col">
 			<!-- Header -->
 			<header class="p-4 flex justify-between bg-stone-100 rounded-b-3xl md:p-2 shadow-lg">
-				<button class="border-2 border-red-500 py-1 px-4 rounded-full text-red-500 font-semibold text-lg md:text-sm">Disconnect</button>
-
+				<button class="border-2 border-red-500 py-1 px-4 rounded-full text-red-500 font-semibold text-lg md:text-sm" @click="disconnect()">
+					Disconnect
+				</button>
 			</header>
 
 			<!-- Main chat component -->
@@ -44,6 +45,16 @@
 
 				</button>
 			</footer>
+		</div>
+
+		<!-- Disconnected view -->
+		<div v-if="status === 'disconnected'" class="w-full h-full flex justify-center items-center flex-col gap-4 bg-stone-100 md:gap-3">
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#10b981" class="w-16 h-16">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M15.182 16.318A4.486 4.486 0 0012.016 15a4.486 4.486 0 00-3.198 1.318M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+			</svg>
+			<h1 class="font-semibold text-3xl md:text-2xl text-emerald-500">Disconnected!</h1>
+			<p class="text-stone-400 text-lg md:text-base">Click the button below to start chatting again!</p>
+			<button @click="request()" class="bg-emerald-500 rounded-lg text-stone-100 py-2 px-4 text-xl font-semibold md:text-lg">Let's go!</button>
 		</div>
 	</div>
 </template>
@@ -81,7 +92,10 @@ export default {
 					break;
 
 				// User disconnected from chat (chat ended)
-				case 'USER_DISCONNECTED':
+				case 'DISCONNECTED':
+					to.value = null;
+					status.value = 'disconnected';
+					messages.value = [];
 					break;
 
 				// Message event
@@ -117,6 +131,16 @@ export default {
 			this.connection.send(JSON.stringify(data));
 			this.messages.unshift(data);
 			window.scrollTo(0, document.body.scrollHeight);
+		},
+		async disconnect() {
+			this.connection.send(JSON.stringify({
+				type: 'DISCONNECTED',
+				from: this.from,
+				to: this.to
+			}));
+			this.to = null;
+			this.status = 'disconnected';
+			this.messages = [];
 		}
 	}
 }

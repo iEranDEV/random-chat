@@ -6,6 +6,7 @@ const server = new WebSocket.Server({
 
 // List of all connected user
 const clients = new Map();
+const pairs = new Map();
 let next = null;
 
 // On connection to server event
@@ -29,7 +30,6 @@ server.on('connection', (connection) => {
                 if(next == null) {
                     // If there is no next user, set up the queue with ID
                     next = id;
-                    console.log('added to queue')
                 } else {
                     // Send USER_FOUND message to current user
                     connection.send(JSON.stringify({
@@ -42,6 +42,9 @@ server.on('connection', (connection) => {
                         type: 'USER_RESPONSE',
                         to: id,
                     }))
+
+                    pairs.set(next, id);
+                    pairs.set(id, next);
 
                     // Clear the queue
                     next = null;
@@ -57,6 +60,18 @@ server.on('connection', (connection) => {
                     content: data.content,
                 }))
                 break;
+            
+
+            // User disconnected
+            case 'DISCONNECTED':
+                pairs.delete(data.from);
+                pairs.delete(data.to);
+                clients.get(data.to).send(JSON.stringify({
+                    type: 'DISCONNECTED',
+                    from: data.from,
+                    to: data.to
+                }))
+                break;
         }
 
     });
@@ -64,12 +79,21 @@ server.on('connection', (connection) => {
     // Connection close handler
     connection.on('close', () => {
         // Remove user connection from users map
-        clients.delete(connection);
+        let val = pairs.get(id);
+        if(val) {
+            pairs.delete(val);
+            pairs.delete(id);
+            clients.get(val).send(JSON.stringify({
+                type: 'DISCONNECTED',
+                from: id,
+                to: val
+            }))
+        }
+        clients.delete(id);
 
         // Check if user was in queue
         if(next == id) {
             next = null;
-            console.log('cleared queue')
         }
     })
 })
